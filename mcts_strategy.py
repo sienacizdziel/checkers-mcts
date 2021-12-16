@@ -2,40 +2,7 @@ from checkers.game import *
 from checkers.board import *
 import math
 import random
-from heuristic import *
-# import pdb
-
-# root 
-# special case of ucb if there is a child with zero visit count go to it
-# recursively update the rewards 
-# pick a child, then do the playout 
-
-# while it > 0
-# start at root
-    # while not leaf
-        # do UCB to select child
-    # add node if expandable (nonterminal / non-zero visits)
-    # random playout 
-    # backpropagate reward 
-
-# average reward over visits
-# keep track of reward for player one
-# ask root who's the current player
-# if p1, max ucb
-    # tot reward / # visits + sqrt(2ln parent visits / # visits)
-    # subtract for p2 when minning
-
-# key = parent to child
-# value = data
-
-# don't forget about time limitations
-# is the first traversal of the tree an iteration?
-    # the way i see iteration: 
-    # look at each child node of the root
-    # then, start counting iterations
-    # run playouts on all children of the children, until out of iterations
-    # select ideal choice based off the node values from the playouts
-    # will the number of iterations ever be less than the amount of children you can get from the parent?
+from heuristic_strategy import *
 
 class Node:
     def __init__(self, parent, unvisited_children, reward=0, visits=0): 
@@ -49,7 +16,7 @@ class Node:
         # split into player one and two
         # visits should be the natural log of the parent/child
         if is_exploration:
-            print(self.reward/ self.visits)
+            print("reward value = " + str(self.reward/ self.visits))
             return (self.reward / self.visits)
         elif player == 1:
             return (self.reward / self.visits) + math.sqrt((0.75 * math.log(parent_visits)) / self.visits)
@@ -64,9 +31,6 @@ def mcts_strategy(num_iters):
         while True:
             if depth == 0:
                 return 0.5
-            # print(board.count_movable_player_pieces(1))
-            # print(board.count_movable_player_pieces(2))
-            # print(board.get_possible_moves())
             if board.get_winner() != None:
                 return 1.0 if board.get_winner() == 1 else 0.0
             if board.player_turn == 1:
@@ -82,30 +46,30 @@ def mcts_strategy(num_iters):
             board = board.create_new_board_from_move(move)
             depth -= 1
 
-    def playout_recursive(board, depth):
-        epsilon = 0.8
-        if depth == 0:
-            return 0.5
-        # put turn limit (wikipedia game complexity table, 2x avg length) on playout and call a draw if it doesn't end in a number of moves
-        # replace recursion in playout with iteration
-        # do heuristic with some prob and otherwise do random
-        ''' conducts a random playout simulation on a position and returns the winner '''
-        if board.get_winner() != None:
-            # print(board.get_winner())
-            return 1.0 if board.get_winner() == 1 else 0.0
-        # print(board.get_possible_moves())
-        if board.player_turn == 1:
-            if random.random() < epsilon:
-                move = heuristic_strategy(board)
-            else:
-                move = random.choice(board.get_possible_moves())
-        else:
-            if random.random() < epsilon:
-                move = heuristic_strategy(board)
-            else:
-                move = random.choice(board.get_possible_moves())
-        # print(move)
-        return playout(board.create_new_board_from_move(move), depth - 1)
+    # def playout_recursive(board, depth):
+    #     epsilon = 0.8
+    #     if depth == 0:
+    #         return 0.5
+    #     # put turn limit (wikipedia game complexity table, 2x avg length) on playout and call a draw if it doesn't end in a number of moves
+    #     # replace recursion in playout with iteration
+    #     # do heuristic with some prob and otherwise do random
+    #     ''' conducts a random playout simulation on a position and returns the winner '''
+    #     if board.get_winner() != None:
+    #         # print(board.get_winner())
+    #         return 1.0 if board.get_winner() == 1 else 0.0
+    #     # print(board.get_possible_moves())
+    #     if board.player_turn == 1:
+    #         if random.random() < epsilon:
+    #             move = heuristic_strategy(board)
+    #         else:
+    #             move = random.choice(board.get_possible_moves())
+    #     else:
+    #         if random.random() < epsilon:
+    #             move = heuristic_strategy(board)
+    #         else:
+    #             move = random.choice(board.get_possible_moves())
+    #     # print(move)
+    #     return playout(board.create_new_board_from_move(move), depth - 1)
 
     def calc_ucb(player, curr_node, is_exploration):
         ''' calculates the max (player 0) or min (player 1) ucb '''
